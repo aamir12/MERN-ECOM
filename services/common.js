@@ -1,19 +1,18 @@
-const passport = require('passport');
-const nodemailer = require('nodemailer');
+const passport = require("passport");
+const nodemailer = require("nodemailer");
 
 let transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
   port: 587,
   secure: false, // true for 465, false for other ports
   auth: {
-    user: 'coderdost@gmail.com', // gmail
+    user: "webregister88@gmail.com", // gmail
     pass: process.env.MAIL_PASSWORD, // pass
   },
 });
 
-
 exports.isAuth = (req, res, done) => {
-  return passport.authenticate('jwt');
+  return passport.authenticate("jwt");
 };
 
 exports.sanitizeUser = (user) => {
@@ -23,26 +22,25 @@ exports.sanitizeUser = (user) => {
 exports.cookieExtractor = function (req) {
   let token = null;
   if (req && req.cookies) {
-    token = req.cookies['jwt'];
+    token = req.cookies["jwt"];
   }
+
   return token;
 };
 
+exports.sendMail = async function ({ to, subject, text, html }) {
+  let info = await transporter.sendMail({
+    from: '"E-commerce" <webregister88@gmail.com>', // sender address
+    to,
+    subject,
+    text,
+    html,
+  });
+  return info;
+};
 
-exports.sendMail = async function ({to, subject, text, html}){
-    let info = await transporter.sendMail({
-        from: '"E-commerce" <coderdost@gmail.com>', // sender address
-        to,
-        subject,
-        text,
-        html
-      });
-    return info;  
-}
-
-exports.invoiceTemplate = function(order){
-
- return (`<!DOCTYPE html>
+exports.invoiceTemplate = function (order) {
+  return `<!DOCTYPE html>
 <html>
 <head>
 
@@ -232,21 +230,35 @@ exports.invoiceTemplate = function(order){
                 <tr>
                   <td align="left" bgcolor="#D2C7BA" width="60%" style="padding: 12px;font-family: 'Source Sans Pro', Helvetica, Arial, sans-serif; font-size: 16px; line-height: 24px;"><strong>Order #</strong></td>
                   <td align="left" bgcolor="#D2C7BA" width="20%" style="padding: 12px;font-family: 'Source Sans Pro', Helvetica, Arial, sans-serif; font-size: 16px; line-height: 24px;"><strong></strong></td>
-                  <td align="left" bgcolor="#D2C7BA" width="20%" style="padding: 12px;font-family: 'Source Sans Pro', Helvetica, Arial, sans-serif; font-size: 16px; line-height: 24px;"><strong>${order.id}</strong></td>
+                  <td align="left" bgcolor="#D2C7BA" width="20%" style="padding: 12px;font-family: 'Source Sans Pro', Helvetica, Arial, sans-serif; font-size: 16px; line-height: 24px;"><strong>${
+                    order.id
+                  }</strong></td>
                 </tr>
-                ${order.items.map(item=>`<tr>
-                  <td align="left" width="60%" style="padding: 6px 12px;font-family: 'Source Sans Pro', Helvetica, Arial, sans-serif; font-size: 16px; line-height: 24px;">${item.product.title}</td>
-                  <td align="left" width="20%" style="padding: 6px 12px;font-family: 'Source Sans Pro', Helvetica, Arial, sans-serif; font-size: 16px; line-height: 24px;">${item.quantity}</td>
-                  <td align="left" width="20%" style="padding: 6px 12px;font-family: 'Source Sans Pro', Helvetica, Arial, sans-serif; font-size: 16px; line-height: 24px;">$${Math.round(item.product.price*(1-item.product.discountPercentage/100),2)}</td>
-                </tr>`)
-
-                }
+                ${order.items.map(
+                  (item) => `<tr>
+                  <td align="left" width="60%" style="padding: 6px 12px;font-family: 'Source Sans Pro', Helvetica, Arial, sans-serif; font-size: 16px; line-height: 24px;">${
+                    item.product.title
+                  }</td>
+                  <td align="left" width="20%" style="padding: 6px 12px;font-family: 'Source Sans Pro', Helvetica, Arial, sans-serif; font-size: 16px; line-height: 24px;">${
+                    item.quantity
+                  }</td>
+                  <td align="left" width="20%" style="padding: 6px 12px;font-family: 'Source Sans Pro', Helvetica, Arial, sans-serif; font-size: 16px; line-height: 24px;">$${Math.round(
+                    item.product.price *
+                      (1 - item.product.discountPercentage / 100),
+                    2
+                  )}</td>
+                </tr>`
+                )}
                
                
                 <tr>
                   <td align="left" width="60%" style="padding: 12px; font-family: 'Source Sans Pro', Helvetica, Arial, sans-serif; font-size: 16px; line-height: 24px; border-top: 2px dashed #D2C7BA; border-bottom: 2px dashed #D2C7BA;"><strong>Total</strong></td>
-                  <td align="left" width="20%" style="padding: 12px; font-family: 'Source Sans Pro', Helvetica, Arial, sans-serif; font-size: 16px; line-height: 24px; border-top: 2px dashed #D2C7BA; border-bottom: 2px dashed #D2C7BA;"><strong>${order.totalItems}</strong></td>
-                  <td align="left" width="20%" style="padding: 12px; font-family: 'Source Sans Pro', Helvetica, Arial, sans-serif; font-size: 16px; line-height: 24px; border-top: 2px dashed #D2C7BA; border-bottom: 2px dashed #D2C7BA;"><strong>$${order.totalAmount}</strong></td>
+                  <td align="left" width="20%" style="padding: 12px; font-family: 'Source Sans Pro', Helvetica, Arial, sans-serif; font-size: 16px; line-height: 24px; border-top: 2px dashed #D2C7BA; border-bottom: 2px dashed #D2C7BA;"><strong>${
+                    order.totalItems
+                  }</strong></td>
+                  <td align="left" width="20%" style="padding: 12px; font-family: 'Source Sans Pro', Helvetica, Arial, sans-serif; font-size: 16px; line-height: 24px; border-top: 2px dashed #D2C7BA; border-bottom: 2px dashed #D2C7BA;"><strong>$${
+                    order.totalAmount
+                  }</strong></td>
                 </tr>
               </table>
             </td>
@@ -284,7 +296,11 @@ exports.invoiceTemplate = function(order){
                   <tr>
                     <td align="left" valign="top" style="padding-bottom: 36px; padding-left: 36px; font-family: 'Source Sans Pro', Helvetica, Arial, sans-serif; font-size: 16px; line-height: 24px;">
                       <p><strong>Delivery Address</strong></p>
-                      <p>${order.selectedAddress.name}<br>${order.selectedAddress.street}<br>${order.selectedAddress.city},${order.selectedAddress.state},${order.selectedAddress.pinCode}</p>
+                      <p>${order.selectedAddress.name}<br>${
+    order.selectedAddress.street
+  }<br>${order.selectedAddress.city},${order.selectedAddress.state},${
+    order.selectedAddress.pinCode
+  }</p>
                       <p>${order.selectedAddress.phone}</p>
 
                       </td>
@@ -354,8 +370,5 @@ exports.invoiceTemplate = function(order){
   <!-- end body -->
 
 </body>
-</html>`
- )
-
-
-}
+</html>`;
+};

@@ -1,7 +1,7 @@
-const { User } = require('../model/User');
-const crypto = require('crypto');
-const { sanitizeUser, sendMail } = require('../services/common');
-const jwt = require('jsonwebtoken');
+const { User } = require("../model/User");
+const crypto = require("crypto");
+const { sanitizeUser, sendMail } = require("../services/common");
+const jwt = require("jsonwebtoken");
 
 exports.createUser = async (req, res) => {
   try {
@@ -11,7 +11,7 @@ exports.createUser = async (req, res) => {
       salt,
       310000,
       32,
-      'sha256',
+      "sha256",
       async function (err, hashedPassword) {
         const user = new User({ ...req.body, password: hashedPassword, salt });
         const doc = await user.save();
@@ -26,7 +26,7 @@ exports.createUser = async (req, res) => {
               process.env.JWT_SECRET_KEY
             );
             res
-              .cookie('jwt', token, {
+              .cookie("jwt", token, {
                 expires: new Date(Date.now() + 3600000),
                 httpOnly: true,
               })
@@ -44,7 +44,7 @@ exports.createUser = async (req, res) => {
 exports.loginUser = async (req, res) => {
   const user = req.user;
   res
-    .cookie('jwt', user.token, {
+    .cookie("jwt", user.token, {
       expires: new Date(Date.now() + 3600000),
       httpOnly: true,
     })
@@ -54,11 +54,11 @@ exports.loginUser = async (req, res) => {
 
 exports.logout = async (req, res) => {
   res
-    .cookie('jwt', null, {
+    .cookie("jwt", null, {
       expires: new Date(Date.now()),
       httpOnly: true,
     })
-    .sendStatus(200)
+    .sendStatus(200);
 };
 
 exports.checkAuth = async (req, res) => {
@@ -73,14 +73,14 @@ exports.resetPasswordRequest = async (req, res) => {
   const email = req.body.email;
   const user = await User.findOne({ email: email });
   if (user) {
-    const token = crypto.randomBytes(48).toString('hex');
+    const token = crypto.randomBytes(48).toString("hex");
     user.resetPasswordToken = token;
     await user.save();
 
     // Also set token in email
     const resetPageLink =
-      'http://localhost:3000/reset-password?token=' + token + '&email=' + email;
-    const subject = 'reset password for e-commerce';
+      "http://localhost:3000/reset-password?token=" + token + "&email=" + email;
+    const subject = "reset password for e-commerce";
     const html = `<p>Click <a href='${resetPageLink}'>here</a> to Reset Password</p>`;
 
     // lets send email and a token in the mail body so we can verify that user has clicked right link
@@ -107,12 +107,12 @@ exports.resetPassword = async (req, res) => {
       salt,
       310000,
       32,
-      'sha256',
+      "sha256",
       async function (err, hashedPassword) {
         user.password = hashedPassword;
         user.salt = salt;
         await user.save();
-        const subject = 'password successfully reset for e-commerce';
+        const subject = "password successfully reset for e-commerce";
         const html = `<p>Successfully able to Reset Password</p>`;
         if (email) {
           const response = await sendMail({ to: email, subject, html });
